@@ -28,13 +28,15 @@ driver = webdriver.Chrome(service=service, options=options)  # <- options로 변
 category = ['Politics', 'Economic','Social','Culture','World','IT']
 pages  = [110, 110, 110, 75, 110, 72]
 df_titles = pd.DataFrame()
-
-for l in range(len(category)):
+count=0
+for l in range(6):
+    section_url = 'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1=10{}'.format(l)
+    titles = []
     for k in range(1, pages[l]+1):
-        url = 'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1=10{}#&date=%2000:00:00&page={}'.format(l,k)
-        titles = []
+        url = section_url + '#&date=%2000:00:00&page={}'.format(k)
         driver.get(url)
         time.sleep(0.5)
+        print(k)
         for i in range(1, 5):
             for j in range(1,6):
                 try:
@@ -43,11 +45,18 @@ for l in range(len(category)):
                     titles.append(title)
                 except:
                     try:
-                        title = driver.find_element('xpath','//*[@id="section_body"]/ul[{}]/li[{}]/dl/dt/a'.format(i, j)).text
+                        title = driver.find_element('xpath','//*[@id="section_body"]/ul[{}]/li[{}]/dl/dt/a'.format(i,j)).text
                         title = re.compile('[^가-힣]').sub(' ', title)
                         titles.append(title)
                     except:
                         print('NoSuchElementException : {}페이지 {}의 {}번째'.format(k,i,j))
+        if k%10 == 0:
+            df_section_title = pd.DataFrame(titles, columns=['titles'])
+            df_section_title['category'] = category[l]
+            df_titles = pd.concat([df_titles, df_section_title], ignore_index=True)
+            df_titles.to_csv('./crawling_data/crawling_data_{}_{}.csv'.format(l, k), index=False)
+            titles = []
+
     df_section_title = pd.DataFrame(titles, columns = ['titles'])
     df_section_title['category'] = category[l]
     df_titles = pd.concat([df_titles,df_section_title],ignore_index=True)
