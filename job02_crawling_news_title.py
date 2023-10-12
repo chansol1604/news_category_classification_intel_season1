@@ -2,11 +2,9 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.common.exceptions import NoSuchCookieException, StaleElementReferenceException
 import pandas as pd
 import re
 import time
-import datetime
 
 
 options = ChromeOptions()
@@ -28,7 +26,7 @@ driver = webdriver.Chrome(service=service, options=options)  # <- options로 변
 category = ['Politics', 'Economic','Social','Culture','World','IT']
 pages  = [110, 110, 110, 75, 110, 72]
 df_titles = pd.DataFrame()
-count=0
+
 for l in range(6):
     section_url = 'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1=10{}'.format(l)
     titles = []
@@ -50,16 +48,18 @@ for l in range(6):
                         titles.append(title)
                     except:
                         print('NoSuchElementException : {}페이지 {}의 {}번째'.format(k,i,j))
-        if k%10 == 0:
+        if k % 10 == 0:
             df_section_title = pd.DataFrame(titles, columns=['titles'])
             df_section_title['category'] = category[l]
-            df_titles = pd.concat([df_titles, df_section_title], ignore_index=True)
-            df_titles.to_csv('./crawling_data/crawling_data_{}_{}.csv'.format(l, k), index=False)
+            df_section_title.to_csv('./crawling_data/crawling_data_{}_{}.csv'.format(l,k))
+            # df_titles = pd.concat([df_titles, df_section_title], ignore_index=True)
+            # df_titles.to_csv('./crawling_data/crawling_data_{}_{}.csv'.format(l, k), index=False)
             titles = []
 
     df_section_title = pd.DataFrame(titles, columns = ['titles'])
     df_section_title['category'] = category[l]
-    df_titles = pd.concat([df_titles,df_section_title],ignore_index=True)
+    df_section_title.to_csv('./crawling_data/crawling_data_last.csv', index = False)
+    # df_titles = pd.concat([df_titles,df_section_title],ignore_index=True)
 
 df_titles.to_csv('./crawling_data/crawling_data.csv',index=False)
 
